@@ -14,6 +14,16 @@ export default function startDevServer(compiler, options): void {
         ? compiler.compilers[0].options
         : compiler.options;
     const devServerOptions = firstWpOpt.devServer || {};
+    let devServerOptions = {};
+    if (compiler.compilers) {
+        const comp = compiler.compilers.find(comp => comp.options && comp.options.devServer);
+        if (comp) {
+            devServerOptions = comp.options.devServer;
+        }
+    }
+    else if (compiler.options && compiler.options.devServer) {
+        devServerOptions = compiler.options.devServer;
+    }
 
     const host = options.host || devServerOptions.host || 'localhost';
     const port = options.port || devServerOptions.port || 8080;
