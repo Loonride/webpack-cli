@@ -71,6 +71,7 @@ export default function modifyHelperUtil(action: string, generator: typeof Gener
     })
         .then((): void => {
             let configModule: WebpackScaffoldObject;
+            let configFound = false;
             try {
                 const confPath = path.resolve(process.cwd(), '.yo-rc.json');
                 configModule = require(confPath);
@@ -80,12 +81,14 @@ export default function modifyHelperUtil(action: string, generator: typeof Gener
                 };
                 Object.keys(configModule)
                     .filter(config => {
-                        return configModule[config];
+                        return configModule[config] && typeof configModule[config].configuration === 'object';
                     })
                     .forEach((prop: string): void => {
-                        const configs = Object.keys(configModule[prop].configuration);
-                        configs.forEach((conf: string): void => {
-                            tmpConfig[conf] = configModule[prop].configuration[conf];
+                        configFound = true;
+                        const config = configModule[prop].configuration;
+                        const configKeys = Object.keys(config);
+                        configKeys.forEach((configKey: string): void => {
+                            tmpConfig[configKey] = configModule[prop].configuration[configKey];
                         });
                     });
                 configModule = tmpConfig;
@@ -110,7 +113,10 @@ export default function modifyHelperUtil(action: string, generator: typeof Gener
                 process.stdout.write(`\n${successMessage}`);
                 return;
             }
-            return runTransform(transformConfig, 'init');
+            
+            if (configFound) {
+                return runTransform(transformConfig, 'init');
+            }
         })
         .catch((err): void => {
             console.error(
